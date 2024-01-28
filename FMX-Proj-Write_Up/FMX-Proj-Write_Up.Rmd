@@ -79,7 +79,13 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width 
 #   Housekeeping
 pacman::p_load(tidyverse, 
                dplyr, 
-               ggplot2)
+               ggplot2,
+               devtools,
+               econdatar)
+
+source("code/extract_cpi.R")
+source("code/transform_cpi.R")
+source("code/EDA.R")
 ```
 
 
