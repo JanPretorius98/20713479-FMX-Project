@@ -3,7 +3,7 @@
 # Remove comments and add values where applicable.
 # The descriptions below should be self-explanatory
 
-title: "Consumer Price Index - Separating the Noise from the Signal"
+title: "Automated Forecasting Dashboards -- The Case of CPI"
 #subtitle: "This will appear as Right Header"
 
 documentclass: "elsarticle"
@@ -73,7 +73,7 @@ abstract: |
 ---
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, message=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE, fig.width = 6, fig.height = 5, fig.pos="H", fig.pos = 'H')
 
 #   Housekeeping
@@ -81,11 +81,16 @@ pacman::p_load(tidyverse,
                dplyr, 
                ggplot2,
                devtools,
-               econdatar)
+               econdatar,
+               forecast,
+               tseries,
+               rugarch,
+               readxl)
 
-source("code/extract_cpi.R")
-source("code/transform_cpi.R")
-source("code/EDA.R")
+source("code/transform.R")
+source("code/arima.R")
+source("code/garch.R")
+source("code/aesthetics.R")
 ```
 
 
@@ -94,6 +99,85 @@ source("code/EDA.R")
 <!-- ############################## -->
 
 # Introduction \label{Introduction}
+
+```{r}
+
+plot_df <- get_plot_df() %>% 
+    mutate(Highlight = ifelse(CPI_COMPONENT == "00.0.0.0.TC", "yes", "no"))
+
+plot_df %>%
+  ggplot(aes(x = Date, y = OBS_VALUE, group = CPI_COMPONENT, color = Highlight)) +
+  geom_line(aes(size = ifelse(Highlight == "yes", "Highlighted", "Normal")), show.legend = FALSE) +
+  geom_path(data = filter(plot_df, Highlight == "yes"), color = "red", size = 1) +
+  scale_color_manual(values = c("grey", "red")) +
+  scale_size_manual(values = c("Highlighted" = 1, "Normal" = 0.5)) +
+  theme_bw() +
+  theme(legend.position = "none")
+
+```
+
+
+
+```{r load_ts_data}
+
+cpi_ts_list <- get_ts_data()
+cpi_arima <- model_arima(cpi_ts_list)
+cpi_arima_residuals <- get_residuals(cpi_arima)
+
+plot(cpi_arima_residuals[["00.0.0.0.TC"]])
+
+```
+
+Blah blah
+
+```{r model_garch}
+
+cpi_garch <- model_garch(cpi_arima_residuals)
+
+# To see the summary of each GARCH model
+#cpi_garch[["08.0.0.0.TC"]]
+
+# For example, to plot the conditional volatility of the first GARCH model
+plot(sigma(cpi_garch[["00.0.0.0.TC"]]))
+```
+
+blah blah
+
+```{r}
+
+# Assuming cpi_arima is your fitted ARIMA model for the total CPI
+# Decide how many steps ahead you want to forecast
+n.ahead <- 24  # for example, forecasting 12 months ahead
+
+# Forecast future values using the ARIMA model
+cpi_forecast <- forecast(cpi_arima[["08.0.0.0.TC"]], h = n.ahead)
+garch_forecast <- ugarchforecast(cpi_garch[["08.0.0.0.TC"]], n.ahead = n.ahead)
+
+# Combine the mean forecast from ARIMA and the volatility forecast from GARCH
+combined_forecast <- data.frame(
+  Date = time(cpi_forecast$mean),
+  CPI_Forecast = as.numeric(cpi_forecast$mean),
+  Volatility = as.numeric(sigma(garch_forecast))
+)
+
+# Calculate confidence intervals
+alpha <- 0.05  # 95% confidence interval
+upper_bound <- combined_forecast$CPI_Forecast + qnorm(1 - alpha/2) * combined_forecast$Volatility
+lower_bound <- combined_forecast$CPI_Forecast - qnorm(1 - alpha/2) * combined_forecast$Volatility
+
+combined_forecast$Upper_CI <- upper_bound
+combined_forecast$Lower_CI <- lower_bound
+
+ggplot(combined_forecast, aes(x = Date)) +
+  geom_line(aes(y = CPI_Forecast), color = "red") +
+  geom_ribbon(aes(ymin = Lower_CI, ymax = Upper_CI), alpha = 0.2) +
+  labs(title = "CPI Forecast with 95% Confidence Intervals",
+       x = "Date",
+       y = "CPI") +
+  theme_bw()
+
+```
+
 
 # Conclusion
 
@@ -111,4 +195,7 @@ source("code/EDA.R")
 Some appendix information here
 
 ## Appendix B {-}
+
+install.packages("rsconnect")
+library(rsconnect)
 
