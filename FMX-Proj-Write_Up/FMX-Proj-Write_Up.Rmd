@@ -329,7 +329,7 @@ forecast[["forecast_plot"]] +
 Of course, a model is evaluated on the basis of the accuracy of its forecasts. Figure \ref{Figure4} displays a comparative analysis between the actual CPI for all items and the forecasted CPI over a period of 16 months. The forecast for this period was produced based on the observed values of the period before July 2022. The blue line represents the actual CPI values, while the red line denotes the forecasted CPI values. Both lines exhibit an increasing trend over the observed period. The forecasted CPI closely mirrors the actual data, suggesting that the forecasting model is capturing the underlying trend in the CPI effectively. This visual comparison serves as a testament to the model's predictive capability in estimating future inflationary trends.
 
 
-```{r evaluation, fig.cap = "Forecasted change in CPI (with 95% Confidence Intervals) \\label{Figure4}"}
+```{r evaluation, fig.cap = "Forecasted CPI vs Actual CPI. Forecasted values in red and actual values in blue. \\label{Figure4}"}
 
 plot_forecast_actual(test_df = get_ts_data()) +
     labs(title = "")
