@@ -27,7 +27,7 @@ CommonAffiliation_12: FALSE
 CorrespAuthor_1: TRUE  
 
 
-keywords: "Multivariate GARCH \\sep Kalman Filter \\sep Copula" 
+keywords: "GARCH \\sep ARIMA \\sep CPI \\sep Volatility Modelling \\sep R Shiny \\sep Dashboards \\sep Inflation" 
 JELCodes: "L250 \\sep L100"
 
 # ----- Manage headers and footers:
@@ -326,16 +326,23 @@ forecast[["forecast_plot"]] +
     labs(title="")
 ```
 
-```{r fig.cap = "Forecasted change in CPI (with 95% Confidence Intervals) \\label{Figure4}"}
+Of course, a model is evaluated on the basis of the accuracy of its forecasts. Figure \ref{Figure4} displays a comparative analysis between the actual CPI for all items and the forecasted CPI over a period of 16 months. The forecast for this period was produced based on the observed values of the period before July 2022. The blue line represents the actual CPI values, while the red line denotes the forecasted CPI values. Both lines exhibit an increasing trend over the observed period. The forecasted CPI closely mirrors the actual data, suggesting that the forecasting model is capturing the underlying trend in the CPI effectively. This visual comparison serves as a testament to the model's predictive capability in estimating future inflationary trends.
+
+
+```{r evaluation, fig.cap = "Forecasted change in CPI (with 95% Confidence Intervals) \\label{Figure4}"}
 
 plot_forecast_actual(test_df = get_ts_data()) +
     labs(title = "")
 
 ```
 
-
 # Discussion & Conclusion
 
+The study engaged in a sophisticated modeling procedure incorporating ARIMA and GARCH models to analyze and forecast the CPI in South Africa, with an emphasis on capturing the inherent volatility and trend components. The fusion of these models into a cohesive forecasting framework was operationalized through a user-friendly web application built using R Shiny, which facilitated interactive engagement with the data and model outputs.
+
+The ARIMA model adeptly captured the temporal dependencies within the CPI series, while the GARCH model effectively encapsulated the volatility patterns, a critical aspect given the recent unpredictability in inflation rates. The performance of these models was benchmarked against actual CPI data, revealing a commendable forecasting prowess that promises to be an invaluable asset for policymakers and economists alike.
+
+In conclusion, the integration of these statistical models within an automated dashboard presents a powerful tool for real-time economic analysis, offering both precision in forecasting and ease of use through the web application. This study not only contributes to the existing financial econometrics literature but also paves the way for future research to refine and expand upon the methodologies and technologies employed.
 
 \newpage
 
