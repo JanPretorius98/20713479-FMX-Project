@@ -6,6 +6,8 @@ The integration of these models into InCast offers a comprehensive framework for
 
 - **The write-up for the report is available [here](FMX-Proj-Write_Up/FMX-Proj-Write_Up.pdf)**
 - **The main markdown file from which the report was compiled is available [here](FMX-Proj-Write_Up/FMX-Proj-Write_Up.Rmd)**
+- **The Web Application, InCast can be accessed [here](https://janpretorius.shinyapps.io/incast/)**
+  -  If InCast is not responding, the application may be 'sleeping'. Please let the author know if any issues are encountered.
 
 ---
 
