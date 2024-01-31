@@ -4,6 +4,9 @@ This project introduces InCast, an Automated Forecasting Dashboard designed to i
 
 The integration of these models into InCast offers a comprehensive framework for better understanding CPI trends and their financial implications. With real-time data updates and automation features, InCast aims to enhance economic planning, policy-making, and financial analysis in South Africa, providing a valuable tool for decision-makers dealing with CPI volatility.
 
+- **The write-up for the report is available [here](FMX-Proj-Write_UP/FMX-Proj-Write_Up.pdf)**
+- **The main markdown file from which the report was compiled is available [here](FMX-Proj-Write_Up/FMX-Proj-Write_Up.Rmd)**
+
 ---
 
 ## Table of Contents
