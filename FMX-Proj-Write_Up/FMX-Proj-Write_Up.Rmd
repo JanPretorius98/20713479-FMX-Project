@@ -69,7 +69,7 @@ output:
     fig_width: 3.5 
     fig_height: 3.5
 abstract: |
-  Abstract to be written here.
+  In this study, I employ a sophisticated forecasting methodology to project future values of the Consumer Price Index (CPI) for a specific time series. The approach leverages the power of two distinct models: an ARIMA (AutoRegressive Integrated Moving Average) model, adept at capturing underlying trends and patterns, and a GARCH (Generalized Autoregressive Conditional Heteroskedasticity) model, which excels in modeling volatility and uncertainty. The ARIMA model is utilized to generate point forecasts for CPI values, providing valuable insights into the expected future trajectory of the index. Concurrently, the GARCH model is employed to forecast volatility, allowing one to gauge the level of uncertainty associated with the CPI projections. Through this synthesis process, I combine the strengths of both models, producing a comprehensive forecasting framework. This framework equips one with not only CPI point forecasts but also their associated confidence intervals, providing a holistic view of the anticipated CPI trends and the inherent uncertainty in the forecast.
 ---
 
 
@@ -85,7 +85,9 @@ pacman::p_load(tidyverse,
                forecast,
                tseries,
                rugarch,
-               readxl)
+               readxl,
+               zoo,
+               xtable)
 
 source("code/transform.R")
 source("code/arima.R")
@@ -98,7 +100,234 @@ source("code/aesthetics.R")
 <!-- # Start Writing here: -->
 <!-- ############################## -->
 
-# Introduction \label{Introduction}
+# Introduction \label{Intro}
+
+In recent years, South Africa has witnessed significant volatility in its Consumer Price Index (CPI). The CPI is not only a fundamental measure for assessing inflation and economic health but also plays a pivotal role in finance, influencing monetary policy, investment strategies, and financial planning. In the realm of finance, the CPI directly impacts interest rate decisions, affects the value of currency, and serves as a critical gauge for adjusting the real returns on investments. As such, volatility in the CPI can introduce substantial uncertainty into financial markets, complicating the assessment of investment risks and opportunities.
+
+This volatility poses a challenge for accurate forecasting and necessitates innovative approaches capable of navigating the complexity and unpredictability of financial indicators. Traditional forecasting models often struggle to separate the underlying signal from the noise inherent in such volatile economic data, leading to forecasts that may be less reliable for economic planning, policy-making, and financial analysis. Recognizing this challenge, this paper introduces an Automated Forecasting Dashboard -- [InCast](https://janpretorius.shinyapps.io/incast/) (**In**flation Fore**cast**er) -- designed specifically to enhance the precision and reliability of CPI forecasts in South Africa. By employing advanced statistical models, including Autoregressive Integrated Moving Average (ARIMA) and Generalized Autoregressive Conditional Heteroskedasticity (GARCH) models, the dashboard aims to refine our understanding of CPI trends and their implications for the financial sector.
+
+This paper details the development and implementation of the forecasting model and its integration into an automated dashboard, emphasizing its potential to significantly impact financial decision-making in South Africa.
+
+# Literature \label{Lit}
+
+In the literature review exploring the optimal modeling procedure for capturing volatility in CPI rates, two significant methodologies are highlighted: ARIMA/ARFIMA and GARCH modeling. The ARIMA model excels at capturing the linear aspects of time series data, making it particularly effective for modeling and forecasting CPI rates over short to medium terms. On the other hand, the GARCH model is adept at capturing and modeling the volatility clustering often observed in financial time series, including CPI rates. This ability allows GARCH models to provide valuable insights into the variability and risk associated with inflation rates, offering a complementary perspective to the ARIMA/ARFIMA models' focus on the level and trend of the series. Together, these methodologies provide a comprehensive toolkit for analyzing CPI volatility, with each addressing different facets of the data's behavior.
+
+A working paper by @Nyoni2019 utilized ARIMA models to forecast CPI in Myanmar using annual data from 1960 to 2017. The ARIMA (2, 2, 1) model was identified as optimal for predicting future CPI values [@Nyoni2019, 4], indicating an upward trajectory in Myanmar's inflation over the next decade. This research emphasizes the model's stability and acceptability for CPI modeling, advocating for policymakers to adopt stringent monetary and fiscal policies to manage inflation effectively.
+
+@Boateng2016 explore the long memory dynamics of CPI inflation rates in Ghana using ARFIMA (AutoRegressive Fractionally Integrated Moving Average) modeling. This methodology effectively captures both short- and long-term dependencies within the inflation data, indicating persistence and mean-reversion in inflation rates [@Boateng2016, 297]. Their findings underscore the significance of employing fractional differencing to accurately model inflationary trends, offering vital insights for policymakers. This approach not only reveals the presence of long memory in Ghana's inflation but also aids in better understanding and forecasting inflationary pressures [@Boateng2016, 299], proving ARFIMA's effectiveness in economic time series analysis.
+
+In his seminal work, @Bollerslev1986 introduced the GARCH model, extending the ARCH model developed by @Engle1982. Bollerslev's GARCH model allows for both autoregressive and moving average components in the variance equation, enabling a more comprehensive analysis of time-series volatility (see p.25). This model has become fundamental in financial econometrics for analyzing and forecasting time-varying volatility, reflecting its capacity to capture the clustering of volatility phenomena observed in financial market returns.
+
+Through the integration of ARIMA and GARCH methodologies, researchers have adeptly navigated the complexities of CPI rate volatility, achieving precise volatility modeling and signal extraction. This blend harnesses ARIMA's strength in understanding data trends and GARCH's prowess in volatility dynamics, offering a robust framework for accurate economic forecasting.
+
+@Baillie1996 investigates inflation through the ARFIMA-GARCH model, highlighting its effectiveness in capturing long-memory processes and conditional heteroscedasticity in inflation data. Their methodology, combining ARFIMA to model fractional integration and GARCH(1, 1) for volatility, provides a nuanced understanding of inflation's persistence and variability. This approach is particularly adept at analyzing the complex dynamics of inflation rates, offering significant insights into their mean-reverting behavior and the interaction between mean and volatility, in line with Friedman's hypothesis that current inflation significantly influences volatility in future inflation [@Baillie1996, 38].
+
+In an extension of the ARFIMA-GARCH model, @Belkhouja2016 account for time-varying baseline mean and volatility in analyzing G7 inflation dynamics from 1955 to 2014. Their innovative approach, incorporating logistic functions for structural changes (see p.451), addresses the overestimation of long-run and GARCH persistence when such changes are ignored. This model provides a nuanced understanding of inflation's behavior, aligning identified shifts with significant economic and political events, thus offering a more accurate tool for policymakers.
+
+The ARIMA model is adept at capturing and forecasting the underlying patterns in CPI data, while the GARCH model addresses the volatility of residuals from the ARIMA model, a critical aspect given the data's inherent noise and volatility. This sophisticated modeling approach, combined with the dashboard's automation features—such as automated data updating—ensures that forecasts are based on the most current data available, a vital requirement for making informed financial decisions. The paper now turns to the methodology followed to build an automated forecasting dashboard.
+
+# Data & Methodology \label{Meth}
+
+For the purposes of this essay, the focus will fall on using an ARIMA-GARCH model^[While the ARFIMA model is clearly more adept at handling inflation forecasting, I focus on ARIMA due to its simplistic nature. Future analyses might benefit from the ARFIMA methodology.] to extract the signal from Consumer Price Index (CPI) data in South Africa. In this section, we will provide an overview of the data sources, the key variables involved, and the methodology employed for the analysis. This approach aims to uncover valuable insights into the behavior and volatility of CPI, a critical economic indicator, in the South African context.
+
+## Automated Data Processes
+
+To conduct this analysis, I leverage an extensive dataset, produced by Statistics South Africa, comprising the Classification of Individual Consumption by Purpose (COICOP) 5-digit CPI values for South Africa. This dataset is sourced directly from Codera Analytics's [EconData](https://www.econdata.co.za/app) platform [@data]. It spans the time frame from January 2008 to December 2023.
+
+One distinct advantage of utilizing EconData is its capacity for functional coding, which allows us to access the data seamlessly. This functional coding approach renders the data entirely self-contained, eliminating the necessity for separate data storage. Furthermore, it offers the benefit of automated data updates on a monthly basis. Thus, each time the dashboard (which I will elaborate on later) is accessed, it provides the most up-to-date CPI information available. This real-time data accessibility is instrumental in ensuring the accuracy and timeliness of our analysis.
+
+The central focus of this paper revolves around the South African CPI for all items. However, it is worth noting that I also explore additional facets of the CPI, as elaborated in Table \ref{tab1}^[Here I present the variable descriptions and the identifier linked to each variable on the EconData platform]. These supplementary CPI components are considered in the context of forecasting, and their analysis is facilitated through the utilization of the [InCast](https://janpretorius.shinyapps.io/incast/) web application, which serves as a complement to this paper.
+
+```{r codelist_tab, results = 'asis'}
+
+data <- read_excel("data/Codelists.xlsx")
+
+# Create a list for adding to rows
+addtorow <- list()
+addtorow$pos <- list()
+addtorow$pos[[1]] <- c(0)
+addtorow$command <- c(paste("\\hline \n",
+                            "\\endhead \n",
+                            "\\hline \n",
+                            "{\\footnotesize Continued on next page} \n",
+                            "\\endfoot \n",
+                            "\\endlastfoot \n", sep=""))
+
+# Create the table
+table <- xtable(data, caption = "CPI Code Lists as Supplied by EconData 
+                \\label{tab1}")
+
+# Print the table with desired formatting
+print.xtable(table,
+             tabular.environment = "longtable",
+             floating = FALSE,  # Leave this as is.
+             table.placement = 'H',  # Leave this as is.
+             booktabs = TRUE,  # Aesthetics
+             include.rownames = FALSE,  # Typically you don't want this in a table.
+             add.to.row = addtorow,  # For adding the Continued on the next page part...
+             comment = FALSE,
+             caption.placement = 'top',  # Where do you want the caption?
+             size = "\\fontsize{12pt}{13pt}\\selectfont"  # Size of text in the table.
+)
+
+```
+
+
+## ARIMA and GARCH Implementation
+
+The analysis in this essay is based on the integration of two prominent time series modeling techniques: AutoRegressive Integrated Moving Average (ARIMA) and Generalized Autoregressive Conditional Heteroskedasticity (GARCH). ARIMA models are well-suited for capturing the temporal dependencies and trends within time series data, while GARCH models excel in modeling volatility and conditional heteroskedasticity.
+
+Our approach involves a two-step process:
+
+1. ARIMA Modeling: In the first step, we apply ARIMA modeling to the CPI data to extract the underlying trends and seasonality patterns. This step helps us understand the inherent dynamics of CPI and identify any significant autocorrelations or non-stationarity in the series.
+
+Given the time series CPI data sequence \((Y_t)\), the ARIMA(p,d,q) model, can be expressed as:
+
+\[
+(1 - \phi_1 L - \phi_2 L^2 - \ldots - \phi_p L^p)(1 - L)^d Y_t = (1 + \theta_1 L + \theta_2 L^2 + \ldots + \theta_q L^q) \epsilon_t 
+\]
+
+Where:
+
+-   \(Y_t\) represents the observed value at time \(t\).
+-   \(L\) is the lag operator, which shifts the time index back by one step.
+-   \(p\) is the order of the autoregressive (AR) component.
+-   \(d\) is the degree of differencing applied to make the series stationary.
+-   \(q\) is the order of the moving average (MA) component.
+-   \(\phi_1, \phi_2, \ldots, \phi_p\) are the autoregressive coefficients.
+-   \(\theta_1, \theta_2, \ldots, \theta_q\) are the moving average coefficients.
+-   \(\epsilon_t\) represents white noise, assumed to be independent and identically distributed with mean zero and constant variance.
+
+This expression represents the general form of an ARIMA model, and the specific coefficients (\(\phi\) and \(\theta\)) are then estimated.
+
+2. GARCH Modeling: Following the ARIMA analysis, we implement a GARCH model to examine the volatility and conditional heteroskedasticity in the CPI series. That is, I use the residuals from the ARIMA process as an input into a GARCH model. This step allows us to assess the degree of uncertainty and risk associated with inflation in South Africa. Given a time series of squared residuals \((\epsilon_t^2)\), a GARCH(1,1) model can be expressed as:
+
+For each time series \(Y_t\) of the residuals calculated from the ARIMA model, I specify the GARCH(1,1) model as follows:
+   
+   \[
+   \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2
+   \]
+
+   Where:
+-    \(\sigma_t^2\) is the conditional variance at time \(t\).
+-    \(\omega\) is the constant term representing the long-term average of the conditional variance. 
+-    \(\alpha_1\) is the autoregressive parameter for the conditional variance.
+-    \(\epsilon_{t-1}^2\) is the squared residual error from the previous time step.
+-    \(\beta_1\) is the moving average parameter for the conditional variance.
+-    \(\sigma_{t-1}^2\) is the conditional variance from the previous time step.
+
+I then fit a GARCH(1,1) model for each time series \(Y_t\) using the specified GARCH model parameters.
+
+\hfill
+
+3. Synthesis: The synthesis of the ARIMA and GARCH models involves combining the point forecasts from the ARIMA model with the volatility forecasts from the GARCH model:
+
+Let \(Y_t\) represent the observed values of the Consumer Price Index (CPI) time series.
+
+- The ARIMA model provides point forecasts for \(Y_t\) as $\(\hat{Y}_t\)$.
+- The GARCH model provides forecasts of conditional variance or volatility, denoted as $\(\hat{\sigma}_t\)$, for each time step in the forecast horizon.
+- The CPI forecast at time \(t\) is denoted as $\(\hat{Y}_t\)$.
+- The upper bound of the 95% confidence interval for $\(\hat{Y}_t\)$ is denoted as $\(\hat{Y}_{t, \text{Upper}}\)$.
+- The lower bound of the 95% confidence interval for $\(\hat{Y}_t\)$ is denoted as $\(\hat{Y}_{t, \text{Lower}}\)$.
+
+Mathematically, the synthesis can be represented as follows:
+
+\[
+\hat{Y}_t = \text{ARIMA Forecast} \\
+
+\hat{\sigma}_t = \text{GARCH Forecast} \\
+\]
+
+#The 95% confidence interval for $\(\hat{Y}_t\)$ can be calculated as:
+
+\[
+\hat{Y}_{t, \text{Upper}} = \hat{Y}_t + z_{\alpha/2} \cdot \hat{\sigma}_t \\
+
+\hat{Y}_{t, \text{Lower}} = \hat{Y}_t - z_{\alpha/2} \cdot \hat{\sigma}_t \\
+\]
+
+Where:
+-   \(\hat{Y}_t\) is the point forecast for CPI at time \(t\) from the ARIMA model.
+-   \(\hat{\sigma}_t\) is the volatility forecast at time \(t\) from the GARCH model.
+-   \(z_{\alpha/2}\) is the critical value of the standard normal distribution corresponding to the desired confidence level (e.g., \(z_{0.025}\) for a 95% confidence interval).
+
+
+By combining these two modeling techniques, we aim to gain a comprehensive understanding of CPI behavior in South Africa, enabling us to make informed observations and draw meaningful conclusions about inflation dynamics in the region.
+
+## Automated Dashboard Design
+
+# Results \label{Results}
+
+```{r}
+
+test_df <- get_ts_data()
+
+# Truncate the last 24 periods from each series in the list
+test_df <- lapply(test_df, function(ts) {
+  window(ts, end = c(2021, 18))  # Truncate to keep data up to December 2021
+})
+
+# Apply models
+test_arima <- model_arima(test_df)
+test_residuals <- get_residuals(test_arima)
+test_garch <- model_garch(test_residuals)
+
+n.ahead <- 18
+
+# Forecast future values using the ARIMA and GARCH model
+cpi_forecast <- forecast(test_arima[["00.0.0.0.TC"]], h = n.ahead)
+garch_forecast <- ugarchforecast(test_garch[["00.0.0.0.TC"]], n.ahead = n.ahead)
+
+# Get the last date from the time series data used in the ARIMA model
+end_date <- as.Date(tail(time(test_arima[["00.0.0.0.TC"]]$x), 1))
+
+# Create a sequence of dates for the forecast period starting from the day after the end_date
+forecast_dates <- seq.Date(from = end_date, by = "month", length.out = n.ahead)
+
+# Combine the mean forecast from ARIMA and the volatility forecast from GARCH
+combined_forecast <- data.frame(
+  Date = forecast_dates,
+  CPI_Forecast = as.numeric(cpi_forecast$mean)
+)
+    
+plot_df <- get_plot_df() %>% 
+    filter(CPI_COMPONENT == "00.0.0.0.TC")
+
+# Convert Date columns to Date class to ensure matching works correctly
+plot_df$Date <- as.Date(plot_df$Date)
+combined_forecast$Date <- as.Date(combined_forecast$Date)
+
+# Perform the left join
+result_df <- left_join(plot_df, combined_forecast, by = "Date") %>%
+    select(-c(CPI_COMPONENT)) %>% 
+    filter(!is.na(CPI_Forecast))  %>% 
+    arrange(Date) %>%
+    mutate(OBS_VALUE = OBS_VALUE - lag(OBS_VALUE, default = first(OBS_VALUE))) %>%
+  # Calculate cumulative sums and add 100 to each observation
+    mutate(Actual = cumsum(OBS_VALUE) + 100,
+           Forecast = cumsum(CPI_Forecast) + 100) %>% 
+    select(-c(OBS_VALUE, CPI_Forecast)) %>%
+    pivot_longer(cols = c(Actual, Forecast),
+               names_to = "Series",
+               values_to = "Value")
+```
+
+```{r}
+
+result_df %>% 
+    ggplot(aes(x = Date, y = Value, color = Series)) +
+      geom_line() +  # Plot lines
+      labs(title = "Actual vs. Forecasted CPI for all items",
+           x = "",
+           y = "CPI",
+           color = "Series") +
+      th +
+      scale_color_manual(values = c("Actual" = "#1E3364", "Forecast" = "#C93D44")) 
+
+```
+
+
+# Discussion & Conclusion
 
 ```{r}
 
@@ -124,7 +353,7 @@ cpi_ts_list <- get_ts_data()
 cpi_arima <- model_arima(cpi_ts_list)
 cpi_arima_residuals <- get_residuals(cpi_arima)
 
-plot(cpi_arima_residuals[["00.0.0.0.TC"]])
+
 
 ```
 
@@ -192,10 +421,9 @@ ggplot(combined_forecast, aes(x = Date)) +
 
 ## Appendix A {-}
 
+
+
 Some appendix information here
 
 ## Appendix B {-}
-
-install.packages("rsconnect")
-library(rsconnect)
 
