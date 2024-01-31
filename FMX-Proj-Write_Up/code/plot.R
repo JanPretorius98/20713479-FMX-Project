@@ -54,6 +54,8 @@ plot_cpi_forecast <- function(arima_model, garch_model, n.ahead, selected_compon
     # Calculate cumulative CPI Forecast
     combined_forecast$Cumulative_CPI_Forecast <- cumsum(combined_forecast$CPI_Forecast)
 
+    combined_forecast$Date <- as.Date(combined_forecast$Date, format="%b %Y")
+
     # Plot the forecast with confidence intervals
     p <- ggplot(combined_forecast, aes(x = Date)) +
         geom_line(aes(y = CPI_Forecast), color = "#C93D44") +
@@ -76,13 +78,66 @@ plot_cpi_forecast <- function(arima_model, garch_model, n.ahead, selected_compon
 }
 
 
-plot_inflation <- function(df) {
-    df %>%
-        filter(!is.na(InflationRate)) %>%  # Filter out NA values
-        ggplot(aes(x = Date, y = InflationRate)) +
-        geom_line(color = "#1E3364") +  # You can change the color as desired
-        labs(title = "Forecasted Inflation Rates",
-             x = "Date",
-             y = "Inflation Rate (%)") +
-        th
+plot_forecast_actual <- function(test_df) {
+
+    # Truncate the last 24 periods from each series in the list
+    test_df <- lapply(test_df, function(ts) {
+        window(ts, end = c(2021, 18))  # Truncate to keep data up to December 2021
+    })
+
+    # Apply models
+    test_arima <- model_arima(test_df)
+    test_residuals <- get_residuals(test_arima)
+    test_garch <- model_garch(test_residuals)
+
+    n.ahead <- 18
+
+    # Forecast future values using the ARIMA and GARCH model
+    cpi_forecast <- forecast(test_arima[["00.0.0.0.TC"]], h = n.ahead)
+    garch_forecast <- ugarchforecast(test_garch[["00.0.0.0.TC"]], n.ahead = n.ahead)
+
+    # Get the last date from the time series data used in the ARIMA model
+    end_date <- as.Date(tail(time(test_arima[["00.0.0.0.TC"]]$x), 1))
+
+    # Create a sequence of dates for the forecast period starting from the day after the end_date
+    forecast_dates <- seq.Date(from = end_date, by = "month", length.out = n.ahead)
+
+    # Combine the mean forecast from ARIMA and the volatility forecast from GARCH
+    combined_forecast <- data.frame(
+        Date = forecast_dates,
+        CPI_Forecast = as.numeric(cpi_forecast$mean)
+    )
+
+    plot_df <- get_plot_df() %>%
+        filter(CPI_COMPONENT == "00.0.0.0.TC")
+
+    # Convert Date columns to Date class to ensure matching works correctly
+    plot_df$Date <- as.Date(plot_df$Date)
+    combined_forecast$Date <- as.Date(combined_forecast$Date)
+
+    # Perform the left join
+    result_df <- left_join(plot_df, combined_forecast, by = "Date") %>%
+        select(-c(CPI_COMPONENT)) %>%
+        filter(!is.na(CPI_Forecast))  %>%
+        arrange(Date) %>%
+        mutate(OBS_VALUE = OBS_VALUE - lag(OBS_VALUE, default = first(OBS_VALUE))) %>%
+        # Calculate cumulative sums and add 100 to each observation
+        mutate(Actual = cumsum(OBS_VALUE) + 100,
+               Forecast = cumsum(CPI_Forecast) + 100) %>%
+        select(-c(OBS_VALUE, CPI_Forecast)) %>%
+        pivot_longer(cols = c(Actual, Forecast),
+                     names_to = "Series",
+                     values_to = "Value")
+
+   p <-  result_df %>%
+        ggplot(aes(x = Date, y = Value, color = Series)) +
+        geom_line() +  # Plot lines
+        labs(title = "Actual vs. Forecasted CPI for all items",
+             x = "",
+             y = "CPI",
+             color = "Series") +
+        th +
+        scale_color_manual(values = c("Actual" = "#1E3364", "Forecast" = "#C93D44"))
+
+   return(p)
 }
