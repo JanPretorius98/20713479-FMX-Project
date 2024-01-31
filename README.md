@@ -9,7 +9,7 @@ The integration of these models into InCast offers a comprehensive framework for
 ## Table of Contents
 
 1. [Installation](#installation)
-2. [Project Organization](#project-organization)
+2. [Project Organisation](#project-organisation)
 3. [Thought Process for Coding Scripts](#thought-process-for-coding-scripts)
 4. [Code Functions](#code-functions)
 5. [InCast Web Application](#incast-web-application)
