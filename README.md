@@ -69,28 +69,28 @@ if (!requireNamespace("pacman", quietly = TRUE)) {
 
 This is the part of my readme that shows the repository organisation for my project. It shows the different folders, what is stored in them and some descriptions: The project repository is organised as follows: 
 
-- **FMX-Proj-Write_Up**
-  - **code**
-    - `aesthetics.R` - Contains scripts for plot aesthetics
-    - `arima.R` - Contains functions for ARIMA modeling
-    - `garch.R` - Contains functions for GARCH modeling
-    - `plot.R` - Contains functions for plotting
-    - `transform` - Contains functions for transforming data
-  - **data**
-    - `Codelists.xlsx` - An Excel sheet that describes the variables and their identification codes
-  - **FMX-Proj-Write_Up_files**
+- [**FMX-Proj-Write_Up**](FMX-Proj-Write_Up)
+  - [**code**](FMX-Proj-Write_Up/code)
+    - [`aesthetics.R`](FMX-Proj-Write_Up/code/aesthetics.R) - Contains scripts for plot aesthetics
+    - [`arima.R`](FMX-Proj-Write_Up/code/arima.R) - Contains functions for ARIMA modeling
+    - [`garch.R`](FMX-Proj-Write_Up/code/garch.R) - Contains functions for GARCH modeling
+    - [`plot.R`](FMX-Proj-Write_Up/code/plot.R) - Contains functions for plotting
+    - [`transform`](FMX-Proj-Write_Up/code/transform.R) - Contains functions for transforming data
+  - [**data**](FMX-Proj-Write_Up/data)
+    - [`Codelists.xlsx`](FMX-Proj-Write_Up/data/Codelists.xlsx) - An Excel sheet that describes the variables and their identification codes
+  - [**FMX-Proj-Write_Up_files**](FMX-Proj-Write_Up/FMX-Proj-Write_UP_files)
     - Contains all necessary files for the project write-up
-  - **tex**
+  - [**Tex**](FMX-Proj-Write_Up/Tex)
     - Contains files necessary for the reference list and layout of the write-up
-- **InCast**
-  - `app.R` - The Shiny app scripts
-  - **data** 
+- [**InCast**](InCast)
+  - [`app.R`](InCast/app.R) - The Shiny app scripts
+  - [**data**](InCast/data)
     - Where the data for InCast is temporarily stored
-  - **functions**
+  - [**functions**](InCast/functions)
     - All functions defined in **code** are stored here
-- **Literature**
+- [**Literature**](Literature)
   - All literature used is stored in this folder
-- **License**
+- [**License**](Licence)
   - Licensing information for the project – an MIT licence was used
 
 ---
@@ -131,21 +131,21 @@ In this section, I want to clarify some of my thought processes.
       - The function first imports CPI (Consumer Price Index) data using the `read_econdata` function, similar to `get_ts_data()`. It then defines an inner function called `combine_dataframes` which takes a list of dataframes and combines them into a single dataframe. The function checks if the list is empty and initializes the combined dataframe with the first element of the list. It iterates through the list, renaming columns based on the dataframe names and then merging them horizontally using `cbind`.
       - After combining the dataframes, it checks if there's an "OBS_VALUE" column and removes it. The function returns a processed dataframe suitable for plotting, where each row corresponds to a date, CPI component, and its observed value.
 
-- `aesthetics.R`
+- [`aesthetics.R`](FMX-Proj-Write_Up/code/aesthetics.R)
   - This script defines the plot aesthetics in order to have consistent plot aesthetics
-- `arima.R`
+- [`arima.R`](FMX-Proj-Write_Up/code/arima.R)
   - This script contains the functions used to model the ARIMA model for the project.
   - There are two functions specified:
     - `model_arima()`:
       - The `model_arima` function fits ARIMA models to a list of time series data. It first checks if each time series is stationary using the Augmented Dickey-Fuller test and makes it stationary if necessary by differencing. Then, it applies the `auto.arima` function to determine the best ARIMA model for each time series based on the Akaike Information Criterion (AIC). Finally, it returns a list of ARIMA models corresponding to the input time series.
     - `get_residuals()`
       - The `get_residuals` function takes a list of ARIMA models as input. It first summarizes each ARIMA model using the `summary` function but doesn't capture or store the summaries. Then, it extracts the residuals from each ARIMA model using the `residuals` function. These residuals are stored in a list of time series objects. Finally, the function converts each time series of residuals into a data frame and returns a list of these data frames containing the residuals for further analysis or visualization.
-- `garch.R`
+- [`garch.R`](FMX-Proj-Write_Up/code/garch.R)
   - This script contains the functions necessary to model the GARCH model.
   - There is one function in the script:
     - `model_garch()`
       - Fits Generalized Autoregressive Conditional Heteroskedasticity (GARCH) models to a collection of time series data representing residuals. It begins by initializing an empty list called `garch_models` to hold the fitted GARCH models. The function then iterates through the names of the provided time series, specifying a GARCH(1,1) model for each using the `ugarchspec` function. This model includes both a volatility component and an optional mean component. Subsequently, it fits the specified GARCH model to the respective residual time series using the `ugarchfit` function. The fitted GARCH models are stored in the `garch_models` list, where each model is associated with the name of its corresponding time series. Ultimately, the function returns the `garch_models` list containing these fitted GARCH models, facilitating further analysis or evaluation of the models.
-- `plot.R`
+- [`plot.R`](FMX-Proj-Write_Up/code/plot.R)
   - This script contains plotting functions used in the project. It recursively refers to the theme functions defined in `aethetics`.
   - It contains three functions:
     - `plot_cpi_series`
@@ -159,7 +159,7 @@ In this section, I want to clarify some of my thought processes.
 
 ## InCast Web Application
 
-The InCast web application is defined in the coding script `app.R` in the **InCast** folder. It defines a Shiny web application called the "InCast Forecasting Dashboard." The application is designed to forecast and visualize the Consumer Price Index (CPI) data for various components. It allows users to select a specific CPI component, choose the number of periods to forecast, and decide whether to plot the series or forecast the CPI.
+The InCast web application is defined in the coding script `app.R` in the [**InCast**](InCast/app.R) folder. It defines a Shiny web application called the "InCast Forecasting Dashboard." The application is designed to forecast and visualize the Consumer Price Index (CPI) data for various components. It allows users to select a specific CPI component, choose the number of periods to forecast, and decide whether to plot the series or forecast the CPI.
 
 The InCast Forecasting Dashboard was created to provide an interactive platform for analyzing and forecasting CPI data, which is crucial for economic analysis and decision-making. It enables users to explore and visualize CPI trends for different components and make forecasts based on advanced time series models. This app facilitates data-driven insights into inflation patterns and helps users assess potential economic impacts. By offering both plotting and forecasting capabilities, it empowers users to make informed decisions and gain a deeper understanding of CPI dynamics.
 
