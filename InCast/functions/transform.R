@@ -1,7 +1,7 @@
 get_ts_data <- function() {
     # Import data
     # Read the Excel file
-    cpi_dat <- read_excel('/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/data/CPI.xlsx')
+    cpi_dat <- read_excel('data/CPI.xlsx')
 
     # Set the first column as the row index
     row_names <- cpi_dat[[1]] # Save the first column as row names
@@ -34,7 +34,7 @@ get_ts_data <- function() {
 get_plot_df <- function() {
     # Import data
     # Read the Excel file
-    cpi_dat <- read_excel('/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/data/CPI.xlsx')
+    cpi_dat <- read_excel('data/CPI.xlsx')
 
     # Set the first column as the row index
     row_names <- cpi_dat[[1]]

@@ -14,11 +14,11 @@ pacman::p_load(tidyverse,
                gridExtra)
 
 
-source("/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/functions/transform.R")
-source("/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/functions/arima.R")
-source("/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/functions/garch.R")
-source("/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/functions/plot.R")
-source("/Users/janhendrikpretorius/Library/CloudStorage/OneDrive-StellenboschUniversity/01-Masters-2023/02 Financial Econometrics/20713479-FMX-Project/InCast/functions/aesthetics.R")
+source("functions/transform.R")
+source("functions/arima.R")
+source("functions/garch.R")
+source("functions/plot.R")
+source("functions/aesthetics.R")
 
 
 
